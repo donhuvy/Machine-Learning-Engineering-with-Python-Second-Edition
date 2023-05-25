@@ -1,12 +1,16 @@
 import logging
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+
 plt.rcParams.update({'font.size': 22})
 import datetime
 from numpy.random import MT19937
 from numpy.random import RandomState, SeedSequence
+
 rs = RandomState(MT19937(SeedSequence(123456789)))
+
 
 # Define simulate ride data function
 def simulate_ride_distances():
@@ -21,14 +25,15 @@ def simulate_ride_distances():
     )
     return ride_dists
 
+
 def simulate_ride_speeds():
     logging.info('Simulating ride speeds ...')
     ride_speeds = np.concatenate(
         (
             np.random.normal(loc=30, scale=5, size=370),
-            np.random.normal(loc=30, scale=5, size=10), # same speed
-            np.random.normal(loc=50, scale=10, size=10), # high speed
-            np.random.normal(loc=15, scale=4, size=10) #low speed
+            np.random.normal(loc=30, scale=5, size=10),  # same speed
+            np.random.normal(loc=50, scale=10, size=10),  # high speed
+            np.random.normal(loc=15, scale=4, size=10)  # low speed
         )
     )
     return ride_speeds
@@ -39,7 +44,7 @@ def simulate_ride_data():
     # Simulate some ride data ...
     ride_dists = simulate_ride_distances()
     ride_speeds = simulate_ride_speeds()
-    ride_times = ride_dists/ride_speeds
+    ride_times = ride_dists / ride_speeds
 
     # Assemble into Data Frame
     df = pd.DataFrame(
@@ -49,18 +54,18 @@ def simulate_ride_data():
             'ride_speed': ride_speeds
         }
     )
-    ride_ids = datetime.datetime.now().strftime("%Y%m%d")+df.index.astype(str)
+    ride_ids = datetime.datetime.now().strftime("%Y%m%d") + df.index.astype(str)
     df['ride_id'] = ride_ids
     return df
 
 
-
-#==========================================
+# ==========================================
 # Clustering with DBSCAN
-#==========================================
+# ==========================================
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import DBSCAN
 from sklearn import metrics
+
 
 def plot_cluster_results(data, labels, core_samples_mask, n_clusters_):
     fig = plt.figure(figsize=(10, 10))
@@ -83,8 +88,9 @@ def plot_cluster_results(data, labels, core_samples_mask, n_clusters_):
     plt.xlabel('Standard Scaled Ride Dist.')
     plt.ylabel('Standard Scaled Ride Time')
     plt.title('Estimated number of clusters: %d' % n_clusters_)
-    #plt.show()
+    # plt.show()
     plt.savefig('taxi-rides.png')
+
 
 def cluster_and_label(data, create_and_show_plot=True):
     data = StandardScaler().fit_transform(data)
@@ -116,8 +122,10 @@ def cluster_and_label(data, create_and_show_plot=True):
         pass
     return run_metadata
 
+
 if __name__ == "__main__":
     import os
+
     # If data present, read it in
     file_path = 'taxi-rides.csv'
     if os.path.exists(file_path):
@@ -129,12 +137,12 @@ if __name__ == "__main__":
 
     # Create some nice plots with create_and_show_plot=True (in a notebook)
     X = df[['ride_dist', 'ride_time']]
-    
+
     logging.info('Clustering and labelling')
-    
+
     results = cluster_and_label(X, create_and_show_plot=True)
     df['label'] = results['labels']
-    
+
     # Output your results to json
     logging.info('Outputting to json ...')
     df.to_json('taxi-labels.json', orient='records')
